@@ -56,7 +56,7 @@ public class Client {
             System.out.println("Type your messages below:");
             String userInput;
             while ((userInput = stdIn.readLine()) != null) {
-                out.println(userInput); // Send user's input to the server
+                out.println(userInput);
             }
         } catch (IOException e) {
             System.out.println("Error reading user input: " + e.getMessage());

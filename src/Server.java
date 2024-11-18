@@ -27,8 +27,8 @@ public class Server {
                 System.out.println("A client has connected from " + clientSocket.getInetAddress() + ":" + clientSocket.getPort());
 
                 // Create a new thread to handle the client
-                ClientHandler clientHandler = new ClientHandler(clientSocket);
-                clientHandler.start(); // Start the thread
+                ClientThread clientThread = new ClientThread(clientSocket);
+                clientThread.start(); // Start the thread
 
             } catch (IOException e) {
                 System.out.println("Error accepting client connection: " + e.getMessage());
