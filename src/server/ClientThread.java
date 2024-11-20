@@ -1,3 +1,5 @@
+package server;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -53,7 +55,7 @@ public class ClientThread extends Thread {
                     "Write '!->' And the list of names to exclude users that don't need to see your messages\n" +
                     "Example: !->John,Michael; So John and Michael won't receive the message\n");
             sendUsersList();
-            System.out.println("Client " + clientName + " connected from addres " + clientAddres);
+            System.out.println("client.Client " + clientName + " connected from addres " + clientAddres);
             System.out.println(checkBannedWords("My bomb is ready"));
             // Read messages from the client and send them back
             String line;
@@ -74,7 +76,7 @@ public class ClientThread extends Thread {
                 }
             }
 
-            System.out.println("Client " + clientName + " disconnected");
+            System.out.println("client.Client " + clientName + " disconnected");
 
         } catch (IOException e) {
             System.out.println("Error handling client " + clientName + ": " + e.getMessage());

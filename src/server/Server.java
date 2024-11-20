@@ -1,3 +1,5 @@
+package server;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -31,7 +33,7 @@ public class Server {
         try {
             System.out.println("Attempting to create a server socket...");
             serverSocket = new ServerSocket(serverPort);
-            System.out.println("Server is running on port " + serverPort);
+            System.out.println("server.Server is running on port " + serverPort);
         } catch (IOException e) {
             System.out.println("Failed to create server socket: " + e.getMessage());
             System.exit(1);
@@ -44,7 +46,8 @@ public class Server {
                 System.out.println("A client has connected from " + clientSocket.getInetAddress() + ":" + clientSocket.getPort());
 
                 ClientThread clientThread = new ClientThread(clientSocket, this);
-                clientThread.start();
+                Thread.ofVirtual().start(() -> clientThread.run());
+
 
             } catch (IOException e) {
                 System.out.println("Error accepting client connection: " + e.getMessage());
@@ -58,7 +61,7 @@ public class Server {
         try {
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
-                System.out.println("Server stopped.");
+                System.out.println("server.Server stopped.");
             }
         } catch (IOException e) {
             System.out.println("Error closing server socket: " + e.getMessage());
@@ -79,7 +82,7 @@ public class Server {
                 }
             }
             System.out.println("Configuration loaded:");
-            System.out.println("Server Name: " + serverName);
+            System.out.println("server.Server Name: " + serverName);
             System.out.println("Port: " + serverPort);
             System.out.println("Banned Words: " + bannedWords);
 
