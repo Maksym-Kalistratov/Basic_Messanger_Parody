@@ -5,6 +5,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ClientThread extends Thread {
     private static final List<ClientThread> clientsList = new ArrayList<>();
@@ -14,11 +16,13 @@ public class ClientThread extends Thread {
     private BufferedReader in;
     private PrintWriter out;
     private String[] addressees = {"+"};
-    public ClientThread(Socket socket) {
+    private final Server baza;
+    private Pattern wordsChecker;
+    public ClientThread(Socket socket, Server baza) {
         this.clientSocket = socket;
         this.clientAddres = clientSocket.getInetAddress().toString() + ":" + clientSocket.getPort();
         try {
-            // Initialize I/O streams in the constructor
+            // Initialize I/O streams
             this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             this.out = new PrintWriter(clientSocket.getOutputStream(), true);
         } catch (IOException e) {
@@ -27,27 +31,47 @@ public class ClientThread extends Thread {
         synchronized (clientsList) {
             clientsList.add(this);
         }
+        this.baza = baza;
+        synchronized (baza) {
+            this.wordsChecker = Pattern.compile(
+                    "\\b(" + String.join("|", baza.getBannedWords()) + ")\\b",
+                    Pattern.CASE_INSENSITIVE
+            );
+        }
     }
 
     @Override
     public void run() {
         try {
+            synchronized (baza) {
+                out.println("Banned words: " + baza.getBannedWords());
+            }
             setClientName();
+            out.println("Instructions:\n" +
+                    "Write '->' And the list of names to send message only to certain users\n" +
+                    "Example: ->Ben,John,Michael; So Ben,John and Michael will receive the message\n" +
+                    "Write '!->' And the list of names to exclude users that don't need to see your messages\n" +
+                    "Example: !->John,Michael; So John and Michael won't receive the message\n");
+            sendUsersList();
             System.out.println("Client " + clientName + " connected from addres " + clientAddres);
-
+            System.out.println(checkBannedWords("My bomb is ready"));
             // Read messages from the client and send them back
             String line;
             while ((line = in.readLine()) != null) {
                 System.out.println("Received from " + clientName + ": " + line);
-                if (line.startsWith("->")) {
-                    updateAddressees("+", line.substring(2).trim());
-                    continue;
-                } else if (line.startsWith("!->")) {
-                    updateAddressees("-", line.substring(3).trim());
-                    continue;
+                if (!checkBannedWords(line)) {
+                    if (line.startsWith("->")) {
+                        updateAddressees("+", line.substring(2).trim());
+                        continue;
+                    } else if (line.startsWith("!->")) {
+                        updateAddressees("-", line.substring(3).trim());
+                        continue;
+                    }
+                    sendMessage(line);
+                    System.out.println("Sent");
+                } else{
+                    out.println("Your message contains banned words");
                 }
-                sendMessage(line);
-                System.out.println("Sent");
             }
 
             System.out.println("Client " + clientName + " disconnected");
@@ -59,7 +83,6 @@ public class ClientThread extends Thread {
                 clientsList.remove(this);
             }
             try {
-
                 // Close streams and socket
                 if (in != null) in.close();
                 if (out != null) out.close();
@@ -98,29 +121,32 @@ public class ClientThread extends Thread {
         }
         return false;
     }
-    //Method to set uniqe nickname for client
+    // Method to set uniqe nickname for client
     private void setClientName() throws IOException {
         while (true) {
             out.println("Enter your unique nickname:");
             String name = in.readLine();
-
-            if (name == null || name.equals("")) {
-                out.println("Nickname cannot be empty. Try again.");
-                continue;
-            }
-
-            synchronized (clientsList) {
-                if (isNameTaken(name)) {
-                    out.println("Nickname '" + name + "' is already taken. Please choose another one.");
-                } else {
-                    this.clientName = name;
-                    out.println("Welcome, " + clientName + "!");
-                    break;
+            if (!checkBannedWords(name)) {
+                if (name == null || name.equals("")) {
+                    out.println("Nickname cannot be empty. Try again.");
+                    continue;
                 }
+
+                synchronized (clientsList) {
+                    if (isNameTaken(name)) {
+                        out.println("Nickname '" + name + "' is already taken. Please choose another one.");
+                    } else {
+                        this.clientName = name;
+                        out.println("Welcome, " + clientName + "!");
+                        break;
+                    }
+                }
+            } else{
+                out.println("Your message contains banned words");
             }
         }
     }
-    //Method that checks if name received from user is unique
+    // Method that checks if name received from user is unique
     private boolean isNameTaken(String name) {
         for (ClientThread client : clientsList) {
             if (client.clientName != null && client.clientName.equals(name)) {
@@ -153,5 +179,18 @@ public class ClientThread extends Thread {
             }
             out.println("Recipients set to: " + String.join(", ", existingNames));
         }
+    }
+    private boolean checkBannedWords(String message){
+        Matcher matcher = wordsChecker.matcher(message);
+        return matcher.find();
+    }
+    private void sendUsersList(){
+        String answer = "Clients online: ";
+        synchronized (clientsList) {
+            for (int i = 0; i < clientsList.size(); i++) {
+                answer += clientsList.get(i).clientName + "; ";
+            }
+        }
+        out.println(answer);
     }
 }
