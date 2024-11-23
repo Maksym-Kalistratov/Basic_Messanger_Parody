@@ -1,5 +1,7 @@
 package client;
+
 import clientGUI.ClientFrame;
+
 import java.net.*;
 import java.io.*;
 
@@ -38,31 +40,37 @@ public class Client {
     }
 
     // Method to start a listener thread for receiving messages from the server
-    public void startListener() {
-        Thread listenerThread = Thread.ofVirtual().start(() -> {
+    public void startListener(ClientFrame chat) {
             try {
                 String serverMessage;
                 while ((serverMessage = in.readLine()) != null) {
-                    System.out.println("\n[Server]: " + serverMessage);
+                    chat.getChatPanel().appendToChat("[Server]: "+serverMessage);
+                    //System.out.println("\n[Server]: " + serverMessage);
                 }
             } catch (IOException e) {
                 System.out.println("Error reading from server: " + e.getMessage());
             }
-        });
-    }
-    public String getMessage() {
-        try {
-            return in.readLine(); // Returns a message or null if the connection is closed
-        } catch (IOException e) {
-            System.out.println("Error reading from server: " + e.getMessage());
-            return null;
-        }
+
     }
 
+
+    public void sendMessages() {
+        try {
+            System.out.println("Type your messages below:");
+            String userInput;
+            while ((userInput = stdIn.readLine()) != null) {
+                out.println(userInput);
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading user input: " + e.getMessage());
+        }
+    }
     // Method to send messages to the server
-    public void sendMessages(String message) {
-        if (out != null) {
+    public void sendMessage(String message) {
+        try {
             out.println(message);
+        } catch (Exception e) {
+            System.out.println("Error reading user input: " + e.getMessage());
         }
     }
     public void closeResources() {
@@ -81,13 +89,18 @@ public class Client {
         int port = 9999;
 
         // If hostname and port are provided as arguments, use them
+        if (args.length > 0) {
+            hostname = args[0];
+        }
+        if (args.length > 1) {
+            port = Integer.parseInt(args[1]);
+        }
 
         Client client = new Client(hostname, port);
-        new ClientFrame(client);
-        client.connect();
-        client.startListener();
+        ClientFrame chat = new ClientFrame(client);
 
-        // end the job
+        client.connect();
+        client.startListener(chat);
         client.closeResources();
     }
 }

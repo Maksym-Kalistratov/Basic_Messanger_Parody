@@ -34,7 +34,13 @@ public class ClientPanel extends JPanel {
         inputField.setFont(new Font("Arial", Font.PLAIN, 14));
         inputField.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        sendButton = createButton("Send", e -> {});
+        sendButton = createButton("Send", e -> {
+            String message = inputField.getText().trim();
+            if (!message.isEmpty()) {
+                base.getClient().sendMessage(message);
+                inputField.setText("");
+                appendToChat("[You]: "+message );
+            }});
         sendButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         add(scrollPane);
@@ -56,7 +62,7 @@ public class ClientPanel extends JPanel {
         return button;
     }
     public void appendToChat(String text) {
-        SwingUtilities.invokeLater(() -> chat.append(text + "\n"));
+        chat.append(text + "\n");
     }
 }
 

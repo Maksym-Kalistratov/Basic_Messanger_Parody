@@ -53,7 +53,7 @@ public class ClientThread extends Thread {
                     "Write '->' And the list of names to send message only to certain users\n" +
                     "Example: ->Ben,John,Michael; So Ben,John and Michael will receive the message\n" +
                     "Write '!->' And the list of names to exclude users that don't need to see your messages\n" +
-                    "Example: !->John,Michael; So John and Michael won't receive the message\n");
+                    "Example: !->John,Michael; So John and Michael won't receive the message");
             sendUsersList();
             System.out.println("client.Client " + clientName + " connected from addres " + clientAddres);
             System.out.println(checkBannedWords("My bomb is ready"));

@@ -21,6 +21,7 @@ public class ClientFrame extends JFrame implements KeyListener {
         addKeyListener(this);
         setLocationRelativeTo(null);
         setFocusable(true);
+        setVisible(true);
     }
 
     public Client getClient() {
@@ -51,6 +52,7 @@ public class ClientFrame extends JFrame implements KeyListener {
     public void keyReleased(KeyEvent e) {
 
     }
+
 
 }
 
