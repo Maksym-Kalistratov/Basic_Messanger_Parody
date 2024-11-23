@@ -44,7 +44,6 @@ public class Server {
                 System.out.println("Waiting for a client to connect...");
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("A client has connected from " + clientSocket.getInetAddress() + ":" + clientSocket.getPort());
-
                 ClientThread clientThread = new ClientThread(clientSocket, this);
                 Thread.ofVirtual().start(() -> clientThread.run());
 
@@ -61,7 +60,7 @@ public class Server {
         try {
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
-                System.out.println("server.Server stopped.");
+                System.out.println("Server stopped.");
             }
         } catch (IOException e) {
             System.out.println("Error closing server socket: " + e.getMessage());

@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-public class ClientFrame extends JFrame implements KeyListener {
+public class ClientFrame extends JFrame{
     private final Client client;
     private final ClientPanel chatPanel;
     public ClientFrame(Client client) {
@@ -18,9 +18,7 @@ public class ClientFrame extends JFrame implements KeyListener {
         chatPanel = new ClientPanel(this);
         add(chatPanel);
 
-        addKeyListener(this);
         setLocationRelativeTo(null);
-        setFocusable(true);
         setVisible(true);
     }
 
@@ -31,28 +29,6 @@ public class ClientFrame extends JFrame implements KeyListener {
     public ClientPanel getChatPanel() {
         return chatPanel;
     }
-
-    @Override
-    public void keyTyped(KeyEvent e) {
-
-    }
-    @Override
-    public void keyPressed(KeyEvent e) {
-
-        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-            setFocusable(false);
-            System.exit(0);
-        }
-        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-            setFocusable(false);
-            System.exit(0);
-        }
-    }
-    @Override
-    public void keyReleased(KeyEvent e) {
-
-    }
-
 
 }
 

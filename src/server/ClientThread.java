@@ -51,18 +51,22 @@ public class ClientThread extends Thread {
             setClientName();
             out.println("Instructions:\n" +
                     "Write '->' And the list of names to send message only to certain users\n" +
-                    "Example: ->Ben,John,Michael; So Ben,John and Michael will receive the message\n" +
+                    "Example: ->Ben,John,Michael So Ben,John and Michael will receive the message\n" +
                     "Write '!->' And the list of names to exclude users that don't need to see your messages\n" +
-                    "Example: !->John,Michael; So John and Michael won't receive the message");
+                    "Example: !->John,Michael So John and Michael won't receive the message\n" +
+                    "Write '->all' to reset and send messages to all users.");
             sendUsersList();
-            System.out.println("client.Client " + clientName + " connected from addres " + clientAddres);
-            System.out.println(checkBannedWords("My bomb is ready"));
+            System.out.println("Client " + clientName + " connected from addres " + clientAddres);
             // Read messages from the client and send them back
             String line;
             while ((line = in.readLine()) != null) {
                 System.out.println("Received from " + clientName + ": " + line);
                 if (!checkBannedWords(line)) {
-                    if (line.startsWith("->")) {
+                    if (line.trim().equalsIgnoreCase("->all")) {
+                        addressees = new String[]{"+"};
+                        out.println("Message will now be sent to all users.");
+                        continue;
+                    } else if (line.startsWith("->")) {
                         updateAddressees("+", line.substring(2).trim());
                         continue;
                     } else if (line.startsWith("!->")) {
@@ -76,11 +80,9 @@ public class ClientThread extends Thread {
                 }
             }
 
-            System.out.println("client.Client " + clientName + " disconnected");
-
         } catch (IOException e) {
             System.out.println("Error handling client " + clientName + ": " + e.getMessage());
-        } finally {
+        } finally { //closing the connection
             synchronized (clientsList) {
                 clientsList.remove(this);
             }
@@ -89,12 +91,13 @@ public class ClientThread extends Thread {
                 if (in != null) in.close();
                 if (out != null) out.close();
                 if (clientSocket != null) clientSocket.close();
+                System.out.println("Client " + clientName + " disconnected");
             } catch (IOException e) {
                 System.out.println("Error closing resources: " + e.getMessage());
             }
         }
     }
-
+    // Sends a message to the recipients chosen by the client
     private void sendMessage(String message) {
         synchronized (clientsList) {
             for (ClientThread client : clientsList) {
@@ -104,6 +107,7 @@ public class ClientThread extends Thread {
             }
         }
     }
+    // Checks if the message should be sent to a specific client
     private boolean shouldSend(ClientThread client){
         if(addressees.length == 1) return true;
         else{
@@ -113,17 +117,19 @@ public class ClientThread extends Thread {
                         return true;
                     }
                 }
+                return false;
             } else if (addressees[0].equals("-")) {
                 for (int i = 1; i < addressees.length; i++) {
                     if (client.clientName.equals(addressees[i])) {
                         return false;
-                    }else return true;
+                    }
                 }
+                return true;
             }
         }
         return false;
     }
-    // Method to set uniqe nickname for client
+    // Asks the client to set a unique name
     private void setClientName() throws IOException {
         while (true) {
             out.println("Enter your unique nickname:");
@@ -144,11 +150,11 @@ public class ClientThread extends Thread {
                     }
                 }
             } else{
-                out.println("Your message contains banned words");
+                out.println("Your message contains banned words\n");
             }
         }
     }
-    // Method that checks if name received from user is unique
+    // Checks if the chosen name is already in use
     private boolean isNameTaken(String name) {
         for (ClientThread client : clientsList) {
             if (client.clientName != null && client.clientName.equals(name)) {
@@ -157,6 +163,7 @@ public class ClientThread extends Thread {
         }
         return false;
     }
+    // Updates the list of recipients based on the client's input
     private void updateAddressees(String mode, String names) {
         String[] nameList = names.split(",");
         List<String> existingNames = new ArrayList<>();
@@ -179,13 +186,19 @@ public class ClientThread extends Thread {
             for (int i = 0; i < existingNames.size(); i++) {
                 addressees[i + 1] = existingNames.get(i);
             }
-            out.println("Recipients set to: " + String.join(", ", existingNames));
+            if (mode.equals("+")) {
+                out.println("Recipients set to: " + String.join(", ", existingNames));
+            } else if (mode.equals("-")) {
+                out.println("Recipients set to all excluding: " + String.join(", ", existingNames));
+            }
         }
     }
+    // Checks if the given message contains banned words
     private boolean checkBannedWords(String message){
         Matcher matcher = wordsChecker.matcher(message);
         return matcher.find();
     }
+    // Sends the list of currently connected users to the client
     private void sendUsersList(){
         String answer = "Clients online: ";
         synchronized (clientsList) {

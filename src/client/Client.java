@@ -52,19 +52,6 @@ public class Client {
             }
 
     }
-
-
-    public void sendMessages() {
-        try {
-            System.out.println("Type your messages below:");
-            String userInput;
-            while ((userInput = stdIn.readLine()) != null) {
-                out.println(userInput);
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading user input: " + e.getMessage());
-        }
-    }
     // Method to send messages to the server
     public void sendMessage(String message) {
         try {
@@ -73,6 +60,7 @@ public class Client {
             System.out.println("Error reading user input: " + e.getMessage());
         }
     }
+    // Method to close all resources
     public void closeResources() {
         try {
             if (out != null) out.close();
@@ -84,17 +72,9 @@ public class Client {
         }
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException{
         String hostname = "localhost";
         int port = 9999;
-
-        // If hostname and port are provided as arguments, use them
-        if (args.length > 0) {
-            hostname = args[0];
-        }
-        if (args.length > 1) {
-            port = Integer.parseInt(args[1]);
-        }
 
         Client client = new Client(hostname, port);
         ClientFrame chat = new ClientFrame(client);
